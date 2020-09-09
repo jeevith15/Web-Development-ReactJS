@@ -2,7 +2,7 @@ import React, { Component }  from "react";
 import {Card, CardImg, CardText,CardBody,CardTitle,Breadcrumb,BreadcrumbItem, Button, Modal,ModalHeader,ModalBody,Row, Label} from 'reactstrap';
 import { Link} from "react-router-dom";
 import { Control, LocalForm, Errors } from 'react-redux-form';
-
+import {Loading} from "./LoadingComponent";
 
 
     function RenderDish({dish}){
@@ -21,7 +21,7 @@ import { Control, LocalForm, Errors } from 'react-redux-form';
         }
     }
 
-    function RenderComments({comments}){
+    function RenderComments({comments, addComment,dishId}){
 
         const commentslist= comments.map((comment) =>{
             return (
@@ -46,7 +46,7 @@ import { Control, LocalForm, Errors } from 'react-redux-form';
                 <ul className="list-unstyled">
                     {commentslist}
                 </ul>
-                <CommentForm/>
+                <CommentForm dishId={dishId} addComment={addComment} />
                 </div>  
         );
     }
@@ -54,11 +54,30 @@ import { Control, LocalForm, Errors } from 'react-redux-form';
 
     const DishDetail=(props)=> {
         const dish=props.dish;
-        if (dish == null) {
+        if(props.isLoading){
+            return(
+                <div className="container">
+                    <div className="row">
+                        <Loading/>
+                    </div>
+                </div>
+            );
+        }
+        else if(props.errMess){
+            return(
+                <div className="container">
+                    <div className="row">
+                    <h4>{props.errMess}</h4>
+                    </div>
+                </div>
+            );
+        }
+        else if (dish == null) {
             return (<div></div>)
         }
         const dishID = <RenderDish dish={props.dish}/>
-        const comments= <RenderComments comments={props.comments}/>        
+        const comments= <RenderComments comments={props.comments}
+        addComment={props.addComment} dishId={props.dish.id} />        
         return(
             <div className="container">
                 <div className="row">
@@ -104,8 +123,7 @@ import { Control, LocalForm, Errors } from 'react-redux-form';
 
         handleSubmit(values){
             this.toggleModal();
-            console.log("Current state: " +JSON.stringify(values))
-            alert("Submitted: " +JSON.stringify(values))
+           this.props.addComment(this.props.dishId, values.rating,values.author,values.comment);
            
         }
 
@@ -134,12 +152,12 @@ import { Control, LocalForm, Errors } from 'react-redux-form';
                                         </Control.select>
                             </Row>
                             <Row className="form-group " >
-                                <Label htmlFor=".name" >Your Name</Label>
-                                    <Control.text model=".name" name="name"
+                                <Label htmlFor=".author" >Your Name</Label>
+                                    <Control.text model=".author" name="author"
                                         className="form-control" placeholder="Your Name" 
                                         validators={{required,minLength:minLength(2), maxLength:maxLength(15)}}>
                                         </Control.text>
-                                        <Errors className="text-danger" model=".name" show="touched"
+                                        <Errors className="text-danger" model=".author" show="touched"
                                         messages={{
                                             required:"Required",
                                             minLength: "Must be greater than 2 characters",
